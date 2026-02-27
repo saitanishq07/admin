@@ -152,7 +152,7 @@
       <span class="nav-icon">📅</span> Today's Visits
     </div>
     <div class="nav-item" onclick="showSection('visited')">
-      <span class="nav-icon">✅</span> Confirmed Visits.
+      <span class="nav-icon">✅</span> Confirmed Visits
     </div>
     <div class="nav-label">Settings</div>
     <div class="nav-item" onclick="showConfig()">
@@ -290,7 +290,7 @@
 
 <script>
   // ─── CONFIG ───────────────────────────────────────────────
-  let SCRIPT_URL = localStorage.getItem('ameya_script_url') || '';
+  let SCRIPT_URL = localStorage.getItem('ameya_script_url') || 'https://script.google.com/macros/s/AKfycbxEzuuAR7sG8jpKIBmcx2Zvg12oYXMlrHKc1Z88RoDV64zy1DdspkV1NUo91VhDay_Y/exec';
   let allBookings = [];
   let currentSection = 'bookings';
   let selectedBooking = null;
@@ -298,13 +298,9 @@
   // ─── INIT ─────────────────────────────────────────────────
   document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('currentDate').textContent = new Date().toLocaleDateString('en-IN', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
-    if (!SCRIPT_URL) {
-      document.getElementById('configBanner').classList.remove('hidden');
-    } else {
-      document.getElementById('configBanner').classList.add('hidden');
-      loadBookings();
-    }
+    document.getElementById('configBanner').classList.add('hidden');
     document.getElementById('scriptUrlInput').value = SCRIPT_URL;
+    loadBookings();
   });
 
   // ─── LOAD BOOKINGS FROM SHEET ──────────────────────────────
@@ -426,7 +422,7 @@
     const btn = event.target;
     btn.textContent = '...'; btn.disabled = true;
     try {
-      await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'confirmVisit', bookingRef: ref }) });
+      await fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', headers: {'Content-Type':'text/plain'}, body: JSON.stringify({ action: 'confirmVisit', bookingRef: ref }) });
       // Update local data
       const b = allBookings.find(x => x['Booking Ref'] === ref);
       if (b) { b['Status'] = 'Visited ✓'; b['Confirmed On'] = new Date().toLocaleString('en-IN'); }
@@ -520,5 +516,4 @@
   setInterval(() => { if (SCRIPT_URL) loadBookings(); }, 60000);
 </script>
 </body>
-
 </html>
