@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ameya Admin — Booking Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{--maroon:#8B1A1A;--gold:#C8920A;--green:#2E7D32;--green-light:#E8F5E9;--red:#C62828;--red-light:#FFEBEE;--orange:#E65100;--orange-light:#FFF3E0;--blue:#1565C0;--blue-light:#E3F2FD;--bg:#F5F0E8;--surface:#FFFFFF;--border:#E8DDD5;--text:#1C1008;--text-mid:#4A3728;--text-light:#7A6555;--sidebar-w:260px;}
+  *{margin:0;padding:0;box-sizing:border-box;}body{background:var(--bg);font-family:'Outfit',sans-serif;color:var(--text);display:flex;min-height:100vh;}
+
+  /* SIDEBAR */
+  .sidebar{width:var(--sidebar-w);background:var(--maroon);position:fixed;top:0;left:0;bottom:0;display:flex;flex-direction:column;z-index:100;box-shadow:4px 0 20px rgba(0,0,0,0.15);}
+  .sidebar-brand{padding:1.8rem 1.5rem;border-bottom:1px solid rgba(255,255,255,0.1);}
+  .sidebar-logo{display:flex;align-items:center;gap:0.7rem;}
+  .sidebar-logo-icon{width:42px;height:42px;background:rgba(255,255,255,0.15);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.3rem;}
+  .sidebar-logo-text .t1{font-size:0.6rem;letter-spacing:2px;color:rgba(255,255,255,0.6);text-transform:uppercase;}
+  .sidebar-logo-text .t2{font-family:'Cormorant Garamond',serif;font-size:1.4rem;font-weight:700;color:#fff;line-height:1;}
+  .sidebar-tag{margin-top:0.5rem;display:inline-block;background:rgba(200,146,10,0.25);border:1px solid rgba(200,146,10,0.4);color:var(--gold);padding:0.2rem 0.7rem;border-radius:20px;font-size:0.7rem;font-weight:600;letter-spacing:1px;}
+  .sidebar-nav{flex:1;padding:1.5rem 0;overflow-y:auto;}
+  .nav-label{font-size:0.65rem;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.4);padding:0 1.5rem;margin-bottom:0.5rem;margin-top:1rem;}
+  .nav-item{display:flex;align-items:center;gap:0.8rem;padding:0.8rem 1.5rem;color:rgba(255,255,255,0.75);cursor:pointer;transition:all 0.2s;border-left:3px solid transparent;font-size:0.9rem;font-weight:500;}
+  .nav-item:hover{background:rgba(255,255,255,0.08);color:#fff;}
+  .nav-item.active{background:rgba(255,255,255,0.12);color:#fff;border-left-color:var(--gold);}
+  .nav-item .nav-icon{font-size:1.1rem;width:20px;text-align:center;}
+  .nav-item .badge{margin-left:auto;background:var(--gold);color:#1C1008;font-size:0.7rem;font-weight:700;padding:0.15rem 0.5rem;border-radius:10px;}
+  .sidebar-footer{padding:1.2rem 1.5rem;border-top:1px solid rgba(255,255,255,0.1);font-size:0.75rem;color:rgba(255,255,255,0.4);}
+
+  /* MAIN */
+  .main{margin-left:var(--sidebar-w);flex:1;display:flex;flex-direction:column;min-height:100vh;}
+  .topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;box-shadow:0 2px 8px rgba(0,0,0,0.06);}
+  .topbar h1{font-family:'Cormorant Garamond',serif;font-size:1.6rem;color:var(--maroon);}
+  .topbar-right{display:flex;align-items:center;gap:1rem;}
+  .refresh-btn{background:var(--bg);border:1px solid var(--border);color:var(--text-mid);padding:0.5rem 1.1rem;border-radius:6px;cursor:pointer;font-family:'Outfit',sans-serif;font-size:0.85rem;font-weight:500;transition:all 0.2s;display:flex;align-items:center;gap:0.4rem;}
+  .refresh-btn:hover{border-color:var(--maroon);color:var(--maroon);}
+  .live-dot{width:8px;height:8px;background:#4CAF50;border-radius:50%;animation:pulse 2s infinite;}
+  .topbar-date{font-size:0.82rem;color:var(--text-light);}
+
+  /* CONTENT */
+  .content{padding:2rem;flex:1;}
+
+  /* STATS CARDS */
+  .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1.2rem;margin-bottom:2rem;}
+  .stat-card{background:var(--surface);border-radius:10px;padding:1.4rem;border:1px solid var(--border);transition:all 0.3s;position:relative;overflow:hidden;}
+  .stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;}
+  .stat-card.total::before{background:var(--maroon);}
+  .stat-card.pending::before{background:var(--orange);}
+  .stat-card.visited::before{background:var(--green);}
+  .stat-card.today::before{background:var(--blue);}
+  .stat-card:hover{transform:translateY(-2px);box-shadow:0 8px 25px rgba(0,0,0,0.08);}
+  .stat-icon{font-size:2rem;margin-bottom:0.8rem;}
+  .stat-value{font-family:'Cormorant Garamond',serif;font-size:2.5rem;font-weight:700;line-height:1;}
+  .stat-card.total .stat-value{color:var(--maroon);}
+  .stat-card.pending .stat-value{color:var(--orange);}
+  .stat-card.visited .stat-value{color:var(--green);}
+  .stat-card.today .stat-value{color:var(--blue);}
+  .stat-label{font-size:0.8rem;color:var(--text-light);margin-top:0.3rem;text-transform:uppercase;letter-spacing:1px;}
+
+  /* FILTERS */
+  .filters-bar{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1.2rem 1.5rem;margin-bottom:1.5rem;display:flex;gap:1rem;align-items:center;flex-wrap:wrap;}
+  .search-box{flex:1;min-width:200px;position:relative;}
+  .search-box input{width:100%;padding:0.65rem 1rem 0.65rem 2.5rem;border:1px solid var(--border);border-radius:6px;font-family:'Outfit',sans-serif;font-size:0.9rem;outline:none;transition:border-color 0.2s;background:var(--bg);}
+  .search-box input:focus{border-color:var(--maroon);}
+  .search-box .search-icon{position:absolute;left:0.8rem;top:50%;transform:translateY(-50%);font-size:0.9rem;color:var(--text-light);}
+  .filter-select{padding:0.65rem 1rem;border:1px solid var(--border);border-radius:6px;font-family:'Outfit',sans-serif;font-size:0.88rem;color:var(--text-mid);background:var(--bg);outline:none;cursor:pointer;transition:border-color 0.2s;}
+  .filter-select:focus{border-color:var(--maroon);}
+
+  /* TABLE */
+  .table-wrap{background:var(--surface);border-radius:10px;border:1px solid var(--border);overflow:hidden;}
+  .table-header{padding:1.2rem 1.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+  .table-header h3{font-family:'Cormorant Garamond',serif;font-size:1.3rem;color:var(--maroon);}
+  .table-count{font-size:0.82rem;color:var(--text-light);background:var(--bg);padding:0.3rem 0.8rem;border-radius:20px;border:1px solid var(--border);}
+
+  table{width:100%;border-collapse:collapse;}
+  thead th{background:#F9F4EC;padding:0.9rem 1rem;text-align:left;font-size:0.75rem;font-weight:600;color:var(--text-light);text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid var(--border);white-space:nowrap;}
+  tbody tr{border-bottom:1px solid var(--border);transition:background 0.2s;}
+  tbody tr:hover{background:#FDFAF3;}
+  tbody tr:last-child{border-bottom:none;}
+  tbody td{padding:1rem;font-size:0.88rem;color:var(--text-mid);vertical-align:middle;}
+  .booking-ref{font-weight:700;color:var(--maroon);font-size:0.82rem;letter-spacing:1px;}
+  .customer-name{font-weight:600;color:var(--text);}
+  .customer-phone{font-size:0.82rem;color:var(--text-light);}
+
+  /* STATUS BADGES */
+  .badge{display:inline-flex;align-items:center;gap:0.3rem;padding:0.3rem 0.75rem;border-radius:20px;font-size:0.75rem;font-weight:600;white-space:nowrap;}
+  .badge-pending{background:var(--orange-light);color:var(--orange);}
+  .badge-visited{background:var(--green-light);color:var(--green);}
+  .badge::before{content:'●';font-size:0.5rem;}
+
+  /* ACTION BUTTONS */
+  .action-btn{padding:0.45rem 1rem;border-radius:5px;font-family:'Outfit',sans-serif;font-size:0.8rem;font-weight:600;cursor:pointer;transition:all 0.2s;border:none;white-space:nowrap;}
+  .btn-confirm{background:var(--green);color:#fff;}
+  .btn-confirm:hover{background:#1B5E20;transform:translateY(-1px);}
+  .btn-confirmed{background:var(--green-light);color:var(--green);cursor:default;border:1px solid rgba(46,125,50,0.3);}
+
+  /* EMPTY / LOADING */
+  .empty-state{text-align:center;padding:4rem 2rem;color:var(--text-light);}
+  .empty-state .empty-icon{font-size:3rem;margin-bottom:1rem;}
+  .empty-state h3{font-family:'Cormorant Garamond',serif;font-size:1.5rem;color:var(--text-mid);margin-bottom:0.5rem;}
+  .loading-row td{text-align:center;padding:3rem;color:var(--text-light);}
+
+  /* TOAST */
+  .toast{position:fixed;bottom:2rem;right:2rem;background:#1C1008;color:#fff;padding:0.9rem 1.5rem;border-radius:8px;font-size:0.88rem;font-weight:500;transform:translateY(100px);opacity:0;transition:all 0.3s;z-index:999;display:flex;align-items:center;gap:0.6rem;box-shadow:0 8px 25px rgba(0,0,0,0.2);}
+  .toast.show{transform:translateY(0);opacity:1;}
+  .toast.success{border-left:4px solid #4CAF50;}
+  .toast.error{border-left:4px solid #f44336;}
+
+  /* MODAL - Booking Detail */
+  .detail-overlay{position:fixed;inset:0;z-index:200;background:rgba(28,16,8,0.6);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;padding:1rem;}
+  .detail-overlay.open{display:flex;}
+  .detail-modal{background:#fff;border-radius:12px;width:100%;max-width:560px;animation:modalIn 0.3s ease;box-shadow:0 20px 60px rgba(0,0,0,0.25);}
+  @keyframes modalIn{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
+  .detail-header{background:var(--maroon);color:#fff;padding:1.5rem 2rem;border-radius:12px 12px 0 0;display:flex;justify-content:space-between;align-items:flex-start;}
+  .detail-header h3{font-family:'Cormorant Garamond',serif;font-size:1.6rem;}
+  .detail-header p{opacity:0.8;font-size:0.85rem;margin-top:0.2rem;}
+  .detail-close{background:rgba(255,255,255,0.15);border:none;color:#fff;width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:1rem;}
+  .detail-body{padding:2rem;}
+  .detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem;}
+  .detail-field label{font-size:0.72rem;text-transform:uppercase;letter-spacing:1px;color:var(--text-light);display:block;margin-bottom:0.3rem;}
+  .detail-field span{font-weight:600;color:var(--text);font-size:0.95rem;}
+  .detail-footer{padding:1.5rem 2rem;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:1rem;}
+
+  /* CONFIG BANNER */
+  .config-banner{background:rgba(200,146,10,0.1);border:1px solid rgba(200,146,10,0.4);border-radius:8px;padding:1rem 1.5rem;margin-bottom:1.5rem;display:flex;align-items:center;gap:1rem;font-size:0.88rem;color:var(--text-mid);}
+  .config-banner.hidden{display:none;}
+  .config-banner strong{color:var(--gold);}
+
+  @media(max-width:900px){.stats-grid{grid-template-columns:1fr 1fr;}.sidebar{transform:translateX(-100%);}.main{margin-left:0;}}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-icon">🌿</div>
+      <div class="sidebar-logo-text">
+        <div class="t1">Swargaseema's</div>
+        <div class="t2">Ameya</div>
+      </div>
+    </div>
+    <div class="sidebar-tag">ADMIN PANEL</div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-label">Main</div>
+    <div class="nav-item active" onclick="showSection('bookings')">
+      <span class="nav-icon">📋</span> All Bookings
+      <span class="badge" id="pendingBadge">0</span>
+    </div>
+    <div class="nav-item" onclick="showSection('today')">
+      <span class="nav-icon">📅</span> Today's Visits
+    </div>
+    <div class="nav-item" onclick="showSection('visited')">
+      <span class="nav-icon">✅</span> Confirmed Visits
+    </div>
+    <div class="nav-label">Settings</div>
+    <div class="nav-item" onclick="showConfig()">
+      <span class="nav-icon">⚙️</span> Connect Google Sheet
+    </div>
+  </nav>
+  <div class="sidebar-footer">
+    Last synced: <span id="lastSync">—</span>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+  <div class="topbar">
+    <h1 id="pageTitle">📋 All Bookings</h1>
+    <div class="topbar-right">
+      <div class="live-dot" title="Live data"></div>
+      <span class="topbar-date" id="currentDate"></span>
+      <button class="refresh-btn" onclick="loadBookings()">🔄 Refresh</button>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- Config Banner -->
+    <div class="config-banner" id="configBanner">
+      ⚠️ <strong>Setup Required:</strong> Paste your Google Apps Script Web App URL below to connect to Google Sheets.
+      <button onclick="showConfig()" style="margin-left:auto;background:var(--gold);border:none;padding:0.4rem 1rem;border-radius:4px;cursor:pointer;font-weight:600;font-size:0.82rem;">Configure Now</button>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-grid">
+      <div class="stat-card total">
+        <div class="stat-icon">📊</div>
+        <div class="stat-value" id="statTotal">0</div>
+        <div class="stat-label">Total Bookings</div>
+      </div>
+      <div class="stat-card pending">
+        <div class="stat-icon">⏳</div>
+        <div class="stat-value" id="statPending">0</div>
+        <div class="stat-label">Awaiting Visit</div>
+      </div>
+      <div class="stat-card visited">
+        <div class="stat-icon">✅</div>
+        <div class="stat-value" id="statVisited">0</div>
+        <div class="stat-label">Visited & Confirmed</div>
+      </div>
+      <div class="stat-card today">
+        <div class="stat-icon">🗓️</div>
+        <div class="stat-value" id="statToday">0</div>
+        <div class="stat-label">Today's Bookings</div>
+      </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="filters-bar">
+      <div class="search-box">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="searchInput" placeholder="Search by name, phone, booking ref..." oninput="renderTable()"/>
+      </div>
+      <select class="filter-select" id="statusFilter" onchange="renderTable()">
+        <option value="">All Status</option>
+        <option value="Pending">Pending</option>
+        <option value="Visited">Visited</option>
+      </select>
+      <select class="filter-select" id="dateFilter" onchange="renderTable()">
+        <option value="">All Dates</option>
+      </select>
+    </div>
+
+    <!-- Table -->
+    <div class="table-wrap">
+      <div class="table-header">
+        <h3 id="tableTitle">All Bookings</h3>
+        <span class="table-count" id="tableCount">0 records</span>
+      </div>
+      <div id="tableContainer">
+        <div class="empty-state">
+          <div class="empty-icon">📋</div>
+          <h3>No bookings yet</h3>
+          <p>Bookings will appear here once customers register on the customer site.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- DETAIL MODAL -->
+<div class="detail-overlay" id="detailOverlay" onclick="handleDetailOverlay(event)">
+  <div class="detail-modal" id="detailModal">
+    <div class="detail-header">
+      <div>
+        <h3 id="detailRef">AMY-000000</h3>
+        <p id="detailStatus">Pending</p>
+      </div>
+      <button class="detail-close" onclick="closeDetail()">✕</button>
+    </div>
+    <div class="detail-body">
+      <div class="detail-grid" id="detailGrid"></div>
+    </div>
+    <div class="detail-footer" id="detailFooter"></div>
+  </div>
+</div>
+
+<!-- CONFIG MODAL -->
+<div class="detail-overlay" id="configOverlay" onclick="handleConfigOverlay(event)">
+  <div class="detail-modal">
+    <div class="detail-header">
+      <div><h3>⚙️ Connect Google Sheet</h3><p>Paste your Apps Script Web App URL</p></div>
+      <button class="detail-close" onclick="closeConfig()">✕</button>
+    </div>
+    <div class="detail-body">
+      <p style="color:var(--text-mid);font-size:0.9rem;line-height:1.7;margin-bottom:1.5rem;">
+        Follow these steps to connect:<br><br>
+        1. Open your Google Sheet → <strong>Extensions → Apps Script</strong><br>
+        2. Paste the code from <code>google-apps-script.js</code><br>
+        3. Click <strong>Deploy → New Deployment → Web App</strong><br>
+        4. Set "Who has access" to <strong>Anyone</strong><br>
+        5. Copy the Web App URL and paste below
+      </p>
+      <div class="form-group" style="margin-bottom:0;">
+        <label style="font-size:0.82rem;font-weight:600;color:var(--text-mid);display:block;margin-bottom:0.5rem;text-transform:uppercase;letter-spacing:0.5px;">Apps Script Web App URL *</label>
+        <input type="url" id="scriptUrlInput" placeholder="https://script.google.com/macros/s/..." style="width:100%;padding:0.85rem 1rem;border:2px solid #e8ddd5;border-radius:6px;font-family:'Outfit',sans-serif;font-size:0.9rem;outline:none;transition:border-color 0.3s;" onfocus="this.style.borderColor='var(--maroon)'" onblur="this.style.borderColor='#e8ddd5'"/>
+      </div>
+    </div>
+    <div class="detail-footer">
+      <button onclick="closeConfig()" style="background:transparent;border:1px solid #ddd;color:var(--text-light);padding:0.8rem 1.5rem;border-radius:4px;cursor:pointer;font-family:'Outfit',sans-serif;">Cancel</button>
+      <button onclick="saveConfig()" style="background:var(--maroon);color:#fff;border:none;padding:0.8rem 1.8rem;border-radius:4px;cursor:pointer;font-family:'Outfit',sans-serif;font-weight:600;">Save & Connect</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+  // ─── CONFIG ───────────────────────────────────────────────
+  let SCRIPT_URL = localStorage.getItem('ameya_script_url') || '';
+  let allBookings = [];
+  let currentSection = 'bookings';
+  let selectedBooking = null;
+
+  // ─── INIT ─────────────────────────────────────────────────
+  document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('currentDate').textContent = new Date().toLocaleDateString('en-IN', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+    if (!SCRIPT_URL) {
+      document.getElementById('configBanner').classList.remove('hidden');
+    } else {
+      document.getElementById('configBanner').classList.add('hidden');
+      loadBookings();
+    }
+    document.getElementById('scriptUrlInput').value = SCRIPT_URL;
+  });
+
+  // ─── LOAD BOOKINGS FROM SHEET ──────────────────────────────
+  async function loadBookings() {
+    if (!SCRIPT_URL) { showToast('Please configure Google Sheet URL first', 'error'); return; }
+    const container = document.getElementById('tableContainer');
+    container.innerHTML = `<table><tbody><tr class="loading-row"><td colspan="8">⏳ Loading bookings...</td></tr></tbody></table>`;
+    try {
+      const res = await fetch(SCRIPT_URL + '?t=' + Date.now());
+      const data = await res.json();
+      allBookings = data.bookings || [];
+      document.getElementById('lastSync').textContent = new Date().toLocaleTimeString('en-IN');
+      updateStats();
+      populateDateFilter();
+      renderTable();
+      showToast('Bookings loaded successfully ✓', 'success');
+    } catch(e) {
+      container.innerHTML = `<div class="empty-state"><div class="empty-icon">⚠️</div><h3>Connection Failed</h3><p>Could not reach Google Sheet. Check your URL in Settings.</p></div>`;
+      showToast('Failed to load bookings. Check URL.', 'error');
+    }
+  }
+
+  // ─── STATS ────────────────────────────────────────────────
+  function updateStats() {
+    const today = new Date().toLocaleDateString('en-IN', { weekday:'long', year:'numeric', month:'short', day:'numeric' });
+    const total = allBookings.length;
+    const pending = allBookings.filter(b => (b['Status'] || '').includes('Pending')).length;
+    const visited = allBookings.filter(b => (b['Status'] || '').includes('Visited')).length;
+    const todayCount = allBookings.filter(b => {
+      const bd = b['Visit Date'] || '';
+      return new Date().toLocaleDateString('en-IN', { weekday:'long', year:'numeric', month:'short', day:'numeric' }) === bd ||
+             bd.includes(new Date().getDate() + '');
+    }).length;
+    document.getElementById('statTotal').textContent = total;
+    document.getElementById('statPending').textContent = pending;
+    document.getElementById('statVisited').textContent = visited;
+    document.getElementById('statToday').textContent = todayCount;
+    document.getElementById('pendingBadge').textContent = pending;
+  }
+
+  // ─── POPULATE DATE FILTER ─────────────────────────────────
+  function populateDateFilter() {
+    const sel = document.getElementById('dateFilter');
+    const dates = [...new Set(allBookings.map(b => b['Visit Date']).filter(Boolean))].sort();
+    sel.innerHTML = '<option value="">All Dates</option>';
+    dates.forEach(d => { const o = document.createElement('option'); o.value = d; o.textContent = d; sel.appendChild(o); });
+  }
+
+  // ─── FILTER & RENDER TABLE ────────────────────────────────
+  function getFilteredBookings() {
+    const search = document.getElementById('searchInput').value.toLowerCase();
+    const status = document.getElementById('statusFilter').value;
+    const date = document.getElementById('dateFilter').value;
+    return allBookings.filter(b => {
+      const matchSearch = !search ||
+        (b['Name'] || '').toLowerCase().includes(search) ||
+        (b['Mobile'] || '').includes(search) ||
+        (b['Booking Ref'] || '').toLowerCase().includes(search) ||
+        (b['City'] || '').toLowerCase().includes(search);
+      const matchStatus = !status || (b['Status'] || '').includes(status);
+      const matchDate = !date || (b['Visit Date'] || '') === date;
+      // Section filter
+      if (currentSection === 'today') {
+        const todayStr = new Date().toLocaleDateString('en-IN', { weekday:'long', year:'numeric', month:'short', day:'numeric' });
+        if ((b['Visit Date'] || '') !== todayStr && !(b['Visit Date'] || '').includes(new Date().getDate() + '')) return false;
+      }
+      if (currentSection === 'visited') {
+        if (!(b['Status'] || '').includes('Visited')) return false;
+      }
+      return matchSearch && matchStatus && matchDate;
+    });
+  }
+
+  function renderTable() {
+    const bookings = getFilteredBookings();
+    document.getElementById('tableCount').textContent = `${bookings.length} record${bookings.length !== 1 ? 's' : ''}`;
+    if (bookings.length === 0) {
+      document.getElementById('tableContainer').innerHTML = `<div class="empty-state"><div class="empty-icon">🔍</div><h3>No bookings found</h3><p>Try adjusting your filters.</p></div>`;
+      return;
+    }
+    const rows = bookings.map((b, idx) => {
+      const isVisited = (b['Status'] || '').includes('Visited');
+      const statusBadge = isVisited
+        ? `<span class="badge badge-visited">Visited</span>`
+        : `<span class="badge badge-pending">Pending</span>`;
+      const actionBtn = isVisited
+        ? `<button class="action-btn btn-confirmed">✓ Visited</button>`
+        : `<button class="action-btn btn-confirm" onclick="confirmVisit('${b['Booking Ref']}', ${idx}, event)">Mark Visited</button>`;
+      return `<tr onclick="openDetail('${b['Booking Ref']}')">
+        <td><div class="booking-ref">${b['Booking Ref'] || '—'}</div></td>
+        <td><div class="customer-name">${b['Name'] || '—'}</div><div class="customer-phone">${b['Mobile'] || ''}</div></td>
+        <td>${b['Visit Date'] || '—'}</td>
+        <td>${b['Time Slot'] || '—'}</td>
+        <td>${b['Members'] || '—'}</td>
+        <td>${b['City'] || '—'}</td>
+        <td>${statusBadge}</td>
+        <td onclick="event.stopPropagation()">${actionBtn}</td>
+      </tr>`;
+    }).join('');
+
+    document.getElementById('tableContainer').innerHTML = `
+      <div style="overflow-x:auto;">
+        <table>
+          <thead>
+            <tr>
+              <th>Booking Ref</th><th>Customer</th><th>Visit Date</th><th>Time</th>
+              <th>Members</th><th>City</th><th>Status</th><th>Action</th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>`;
+  }
+
+  // ─── CONFIRM VISIT ────────────────────────────────────────
+  async function confirmVisit(ref, idx, event) {
+    event.stopPropagation();
+    if (!confirm(`Mark booking ${ref} as Visited? This confirms the customer has arrived at the site.`)) return;
+    const btn = event.target;
+    btn.textContent = '...'; btn.disabled = true;
+    try {
+      await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'confirmVisit', bookingRef: ref }) });
+      // Update local data
+      const b = allBookings.find(x => x['Booking Ref'] === ref);
+      if (b) { b['Status'] = 'Visited ✓'; b['Confirmed On'] = new Date().toLocaleString('en-IN'); }
+      updateStats(); renderTable();
+      showToast(`Booking ${ref} confirmed as Visited ✓`, 'success');
+    } catch(e) {
+      btn.textContent = 'Mark Visited'; btn.disabled = false;
+      showToast('Failed to confirm. Check connection.', 'error');
+    }
+  }
+
+  // ─── DETAIL MODAL ─────────────────────────────────────────
+  function openDetail(ref) {
+    const b = allBookings.find(x => x['Booking Ref'] === ref);
+    if (!b) return;
+    selectedBooking = b;
+    document.getElementById('detailRef').textContent = ref;
+    const isVisited = (b['Status'] || '').includes('Visited');
+    document.getElementById('detailStatus').textContent = isVisited ? '✅ Visited' : '⏳ Awaiting Visit';
+
+    const fields = [
+      { label: 'Full Name', val: b['Name'] },
+      { label: 'Mobile', val: b['Mobile'] },
+      { label: 'Email', val: b['Email'] || '—' },
+      { label: 'City', val: b['City'] },
+      { label: 'Visit Date', val: b['Visit Date'] },
+      { label: 'Time Slot', val: b['Time Slot'] },
+      { label: 'Members', val: b['Members'] },
+      { label: 'Pickup Address', val: b['Pickup Address'] },
+      { label: 'Booked On', val: b['Booked On'] || '—' },
+      { label: 'Confirmed On', val: b['Confirmed On'] || '—' },
+    ];
+    document.getElementById('detailGrid').innerHTML = fields.map(f => `
+      <div class="detail-field" style="${f.label==='Pickup Address'?'grid-column:1/3;':''}">
+        <label>${f.label}</label>
+        <span>${f.val || '—'}</span>
+      </div>`).join('');
+
+    document.getElementById('detailFooter').innerHTML = isVisited
+      ? `<button onclick="closeDetail()" style="background:var(--green);color:#fff;border:none;padding:0.8rem 1.8rem;border-radius:4px;cursor:pointer;font-weight:600;">✓ Already Confirmed</button>`
+      : `<button onclick="closeDetail()" style="background:transparent;border:1px solid #ddd;color:var(--text-light);padding:0.8rem 1.5rem;border-radius:4px;cursor:pointer;">Close</button>
+         <button onclick="confirmFromDetail('${ref}')" style="background:var(--green);color:#fff;border:none;padding:0.8rem 1.8rem;border-radius:4px;cursor:pointer;font-weight:600;">✓ Confirm Visit</button>`;
+
+    document.getElementById('detailOverlay').classList.add('open');
+  }
+
+  async function confirmFromDetail(ref) {
+    closeDetail();
+    const fakeEvent = { target: { textContent: '', disabled: false }, stopPropagation: () => {} };
+    await confirmVisit(ref, 0, fakeEvent);
+  }
+
+  function closeDetail() { document.getElementById('detailOverlay').classList.remove('open'); }
+  function handleDetailOverlay(e) { if (e.target === document.getElementById('detailOverlay')) closeDetail(); }
+
+  // ─── SECTIONS ─────────────────────────────────────────────
+  function showSection(section) {
+    currentSection = section;
+    document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+    event.currentTarget.classList.add('active');
+    const titles = { bookings: '📋 All Bookings', today: "📅 Today's Visits", visited: '✅ Confirmed Visits' };
+    document.getElementById('pageTitle').textContent = titles[section] || '📋 All Bookings';
+    document.getElementById('tableTitle').textContent = titles[section] || 'All Bookings';
+    renderTable();
+  }
+
+  // ─── CONFIG ───────────────────────────────────────────────
+  function showConfig() { document.getElementById('configOverlay').classList.add('open'); }
+  function closeConfig() { document.getElementById('configOverlay').classList.remove('open'); }
+  function handleConfigOverlay(e) { if (e.target === document.getElementById('configOverlay')) closeConfig(); }
+  function saveConfig() {
+    const url = document.getElementById('scriptUrlInput').value.trim();
+    if (!url || !url.startsWith('https://script.google.com')) { showToast('Please enter a valid Apps Script URL', 'error'); return; }
+    SCRIPT_URL = url;
+    localStorage.setItem('ameya_script_url', url);
+    document.getElementById('configBanner').classList.add('hidden');
+    closeConfig();
+    showToast('Google Sheet connected! Loading bookings...', 'success');
+    loadBookings();
+  }
+
+  // ─── TOAST ────────────────────────────────────────────────
+  function showToast(msg, type='success') {
+    const t = document.getElementById('toast');
+    t.textContent = (type === 'success' ? '✓ ' : '⚠ ') + msg;
+    t.className = `toast ${type} show`;
+    setTimeout(() => t.classList.remove('show'), 3500);
+  }
+
+  // ─── AUTO-REFRESH every 60s ───────────────────────────────
+  setInterval(() => { if (SCRIPT_URL) loadBookings(); }, 60000);
+</script>
+</body>
+</html>
