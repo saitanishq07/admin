@@ -290,7 +290,7 @@
 
 <script>
   // ─── CONFIG ───────────────────────────────────────────────
-  let SCRIPT_URL = localStorage.getItem('ameya_script_url') || 'https://script.google.com/macros/s/AKfycbxEzuuAR7sG8jpKIBmcx2Zvg12oYXMlrHKc1Z88RoDV64zy1DdspkV1NUo91VhDay_Y/exec';
+  let SCRIPT_URL = localStorage.getItem('ameya_script_url') || 'https://script.google.com/macros/s/AKfycbzLfKFPpVg96lH0EMynw2RFPuCCMfEHq2_czWYEuZaRnRgvDzbYC2ntJziJWbgN5xP9/exec';
   let allBookings = [];
   let currentSection = 'bookings';
   let selectedBooking = null;
@@ -303,24 +303,32 @@
     loadBookings();
   });
 
-  // ─── LOAD BOOKINGS FROM SHEET ──────────────────────────────
-  async function loadBookings() {
+  // ─── LOAD BOOKINGS FROM SHEET (JSONP ─ bypasses CORS) ──────
+  function loadBookings() {
     if (!SCRIPT_URL) { showToast('Please configure Google Sheet URL first', 'error'); return; }
     const container = document.getElementById('tableContainer');
-    container.innerHTML = `<table><tbody><tr class="loading-row"><td colspan="8">⏳ Loading bookings...</td></tr></tbody></table>`;
-    try {
-      const res = await fetch(SCRIPT_URL + '?t=' + Date.now());
-      const data = await res.json();
+    container.innerHTML = '<table><tbody><tr class="loading-row"><td colspan="8">Loading bookings...</td></tr></tbody></table>';
+
+    const old = document.getElementById('jsonp-loader');
+    if (old) old.remove();
+
+    window.__ameyaCallback = function(data) {
       allBookings = data.bookings || [];
       document.getElementById('lastSync').textContent = new Date().toLocaleTimeString('en-IN');
       updateStats();
       populateDateFilter();
       renderTable();
-      showToast('Bookings loaded successfully ✓', 'success');
-    } catch(e) {
-      container.innerHTML = `<div class="empty-state"><div class="empty-icon">⚠️</div><h3>Connection Failed</h3><p>Could not reach Google Sheet. Check your URL in Settings.</p></div>`;
-      showToast('Failed to load bookings. Check URL.', 'error');
-    }
+      showToast('Bookings loaded successfully!', 'success');
+    };
+
+    const script = document.createElement('script');
+    script.id = 'jsonp-loader';
+    script.src = SCRIPT_URL + '?callback=__ameyaCallback&t=' + Date.now();
+    script.onerror = function() {
+      container.innerHTML = '<div class="empty-state"><div class="empty-icon">warning</div><h3>Connection Failed</h3><p>Could not reach Google Sheet. Check your script URL.</p></div>';
+      showToast('Failed to load. Check your URL.', 'error');
+    };
+    document.body.appendChild(script);
   }
 
   // ─── STATS ────────────────────────────────────────────────
